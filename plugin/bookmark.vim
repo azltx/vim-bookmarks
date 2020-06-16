@@ -302,6 +302,44 @@ command! -nargs=? BookmarkMoveUp call s:move_relative(<q-args>, -1)
 command! -nargs=? BookmarkMoveDown call s:move_relative(<q-args>, 1)
 command! -nargs=? BookmarkMoveToLine call s:move_absolute(<q-args>)
 
+function! BookmarkSet()
+  call s:refresh_line_numbers()
+  let file = expand("%:p")
+  if file ==# ""
+    return
+  endif
+  let current_line = line('.')
+  if bm#has_bookmark_at_line(file, current_line)
+    echo "Bookmark already added"
+  else
+    call s:bookmark_add(file, current_line)
+    echo "Bookmark added"
+  endif
+endfunction
+command! BookmarkSet call BookmarkSet()
+
+function! BookmarkClearThis()
+  call s:refresh_line_numbers()
+  let file = expand("%:p")
+  if file ==# ""
+    return
+  endif
+  let current_line = line('.')
+  if bm#has_bookmark_at_line(file, current_line)
+    if g:bookmark_show_toggle_warning ==# 1 && bm#is_bookmark_has_annotation_by_line(file, current_line)
+      let delete = confirm("Delete Annotated bookmarks?", "&Yes\n&No", 2)
+      if (delete !=# 1)
+        echo "Ignore!"
+        return
+      endif
+    endif
+    call s:bookmark_remove(file, current_line)
+    echo "Bookmark removed"
+  else
+    echo "Bookmark already removed"
+  endif
+endfunction
+command! BookmarkClearThis call BookmarkClearThis()
 " }}}
 
 
